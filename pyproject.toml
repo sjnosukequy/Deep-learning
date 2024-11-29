@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "deep learning"
+version = "0.1.0"
+description = ""
+authors = ["sjnosukequy <94581993+sjnosukequy@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+torch = "^2.5.1"
+torchvision = "^0.20.1"
+torchaudio = "^2.5.1"
+torchsummary = "^1.5.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
