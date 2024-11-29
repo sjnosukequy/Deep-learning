@@ -9,31 +9,6 @@ from torchsummary import summary
 import torch.optim as optim
 import time
 
-# CUSTOM CLASS
-
-# class ConvFiltersTransform:
-#     def __init__(self):
-#         # Define Sobel kernels in PyTorch tensor format
-#         # self.left_sobel_kernel = torch.tensor([[[[1, 0, -1], [2, 0, -2], [1, 0, -1]]]], dtype=torch.float32)
-#         # self.right_sobel_kernel = torch.tensor([[[[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]]], dtype=torch.float32)
-#         self.guassianKernel = (1 / 16 * torch.tensor([[[[1, 2, 1], [2, 4, 2], [1, 2, 1]]]], dtype=torch.float32)).repeat(3, 1, 1, 1)
-#         self.outlineKernel = torch.tensor([[[[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]]]], dtype=torch.float32).repeat(3, 1, 1, 1)
-#         self.embossKernel = torch.tensor([[[[-2, -1, 0], [-1, 1, 1], [0, 1, 2]]]], dtype=torch.float32).repeat(3, 1, 1, 1)
-
-#     def __call__(self, img):
-#         # Assuming img is a PyTorch tensor of shape (C, H, W)
-#         img = img.unsqueeze(0)  # Add a batch dimension: (1, C, H, W)
-
-#         # Apply convolution for each filter (left and right Sobel in this example)
-#         blur = F.conv2d(img, self.guassianKernel, padding=1, groups=3)
-#         outline = F.conv2d(img, self.outlineKernel, padding=1, groups=3)
-#         emboss = F.conv2d(img, self.embossKernel, padding=1, groups=3)
-
-#         # Combine the filter outputs along the channel dimension
-#         combined = torch.cat((img, blur, outline, emboss), dim=1)  # Shape will be (1, 2 * C, H, W)
-
-#         return combined.squeeze(0)  # Remove batch dimension: (2 * C, H, W)
-
 
 class ConvFiltersTransform:
     def __init__(self, axis=None):
@@ -67,8 +42,8 @@ def train():
     test_data = datasets.ImageFolder(root='./Dataset/test', transform=data_transform)
 
     # DATA LOADER
-    train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, num_workers=2)
-    test_dataloader = DataLoader(test_data, batch_size=4, shuffle=True, num_workers=2)
+    train_dataloader = DataLoader(train_data, batch_size=16, shuffle=True)
+    test_dataloader = DataLoader(test_data, batch_size=16, shuffle=True)
 
     # print(train_data[0][0].shape)  # C, H, W
 
@@ -76,32 +51,36 @@ def train():
         def __init__(self):
             super(Net, self).__init__()
             self.conv7 = nn.Conv2d(in_channels=12, out_channels=32, kernel_size=7, stride=1, padding=3)
-            self.conv1_1 = nn.Conv2d(in_channels=32, out_channels=12, kernel_size=3, padding=1)
-            self.conv1_2 = nn.Conv2d(in_channels=32, out_channels=12, kernel_size=3, padding=1)
-            self.conv1_3 = nn.Conv2d(in_channels=32, out_channels=12, kernel_size=3, padding=1)
-            self.conv1_4 = nn.Conv2d(in_channels=32, out_channels=12, kernel_size=3, padding=1)
+            self.maxpool = nn.MaxPool2d(kernel_size=5, padding=0, stride=3)
+            self.conv3 = nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, padding=5, stride=3)
 
-            self.conv2_1 = nn.Conv2d(in_channels=12, out_channels=6, kernel_size=3, padding=1)
-            self.conv2_2 = nn.Conv2d(in_channels=12, out_channels=6, kernel_size=3, padding=1)
-            self.conv2_3 = nn.Conv2d(in_channels=12, out_channels=6, kernel_size=3, padding=1)
-            self.conv2_4 = nn.Conv2d(in_channels=12, out_channels=6, kernel_size=3, padding=1)
+            self.conv1_1 = nn.Conv2d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
+            self.conv1_2 = nn.Conv2d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
+            self.conv1_3 = nn.Conv2d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
+            self.conv1_4 = nn.Conv2d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
+
+            self.conv2_1 = nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, padding=1)
+            self.conv2_2 = nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, padding=1)
+            self.conv2_3 = nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, padding=1)
+            self.conv2_4 = nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, padding=1)
 
             self.avgpool_1 = nn.AvgPool2d(kernel_size=2, padding=0, stride=2)
-            self.conv3 = nn.Conv2d(in_channels=12, out_channels=220, kernel_size=3, padding=1, stride=3)
-            self.maxpool = nn.MaxPool2d(kernel_size=3, padding=0, stride=2)
+            self.conv4 = nn.Conv2d(in_channels=32, out_channels=780, kernel_size=3, padding=1)
+            self.avgpool = nn.AvgPool2d(kernel_size=2, padding=0, stride=4)
 
-            self.conv4 = nn.Conv2d(in_channels=220, out_channels=380, kernel_size=3, padding=1)
-            self.avgpool = nn.AvgPool2d(kernel_size=3, padding=0, stride=2)
-
-            self.fc1 = nn.Linear(380 * 8 * 8, 380)
-            self.fc2 = nn.Linear(380, 3)
+            self.fc1 = nn.Linear(780 * 4 * 4, 780)
+            self.fc2 = nn.Linear(780, 3)
 
         def forward(self, x):
             x_7 = F.relu(self.conv7(x))
-            x1_1 = F.relu(self.conv1_1(x_7))
-            x1_2 = F.relu(self.conv1_2(x_7))
-            x1_3 = F.relu(self.conv1_3(x_7))
-            x1_4 = F.relu(self.conv1_4(x_7))
+            x_maxpool = F.relu(self.maxpool(x_7))
+            x_conv3 = F.relu(self.conv3(x_maxpool))
+            x_conv3 = nn.BatchNorm2d(32)(x_conv3)
+
+            x1_1 = F.relu(self.conv1_1(x_conv3))
+            x1_2 = F.relu(self.conv1_2(x_conv3))
+            x1_3 = F.relu(self.conv1_3(x_conv3))
+            x1_4 = F.relu(self.conv1_4(x_conv3))
 
             x2_1 = F.relu(self.conv2_1(x1_1))
             x2_2 = F.relu(self.conv2_2(x1_2))
@@ -111,20 +90,16 @@ def train():
             # print(x2_1.shape)
             x_cat_1 = torch.cat((x2_1, x2_2), 1)
             x_cat_2 = torch.cat((x2_3, x2_4), 1)
-            x_sum_1 = torch.add(x_cat_1, x_cat_2)
-            x_sum_2 = torch.add(x_sum_1, x)
+            x_sum_1 = F.relu(torch.add(x_cat_1, x_cat_2))
+            x_sum_2 = F.relu(torch.add(x_sum_1, x_conv3))
 
             x_avgpool_1 = F.relu(self.avgpool_1(x_sum_2))
-            x_conv3 = F.relu(self.conv3(x_avgpool_1))
-            x_maxpool = F.relu(self.maxpool(x_conv3))
-            # print(x_maxpool.shape)
-
-            x_conv4 = F.relu(self.conv4(x_maxpool))
+            x_conv4 = F.relu(self.conv4(x_avgpool_1))
             x_avgpool = F.relu(self.avgpool(x_conv4))
 
             # print(x_avgpool.shape)
 
-            x_fc = x_avgpool.view(-1, 380 * 8 * 8)
+            x_fc = x_avgpool.view(-1, 780 * 4 * 4)
             x_fc = F.relu(self.fc1(x_fc))
             x_fc = self.fc2(x_fc)
             return x_fc
