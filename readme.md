@@ -51,4 +51,73 @@ py Model_1.py
 ```
 
 
+### 3 Moddel architecture
+Model 1
+```mermaid
+---
+config:
+  look: classic
+  theme: neo
+  layout: dagre
+---
+flowchart TD
+    A["12 * 224 * 224"] --> B["Node 1"]
+    B --> C["Conv7x7 P=3 C=32 S=1"]
+    C --> n1["MaxPool 5x5 P=0 S=3"]
+    n1 --> n2["Conv3x3 P=5 C=32 S=3"] & n14["SUM"]
+    n2 --> n3["Conv3x3 P=1 C=16 S=1"] & n4["Conv3x3 P=1 C=16 S=1"] & n5["Conv3x3 P=1 C=16 S=1"] & n6["Conv3x3 P=1 C=16 S=1"]
+    n3 --> n7["Conv3x3 P=1 C=16 S=1"]
+    n4 --> n8["Conv3x3 P=1 C=16 S=1"]
+    n5 --> n9["Conv3x3 P=1 C=16 S=1"]
+    n6 --> n10["Conv3x3 P=1 C=16 S=1"]
+    n7 --> n11["CAT"]
+    n8 --> n11
+    n9 --> n12["CAT"]
+    n10 --> n12
+    n11 --> n13["SUM"]
+    n12 --> n13
+    n13 --> n14
+    n14 --> n15["AvgPool 2x2 P=0 S=2"]
+    n15 --> n16["Conv3x3 P=1 C=780 S=0"]
+    n16 --> n17["AvgPool 2x2 P=0 S=4"]
+    n17 --> n18["Fully Connected 780"]
+    n18 --> n19["Fully Connected 3"]
+    style A fill:#FFD600
+```
+
+Model 2
+```mermaid
+---
+config:
+  look: classic
+  theme: neo
+  layout: dagre
+---
+flowchart TD
+    A["12 * 224 * 224"] --> B["Node 1"]
+    B --> C["Conv7x7 P=3 C=32 S=1"]
+    C --> n1["AvgPool 5x5 P=0 S=3"]
+    n1 --> n2["Conv5x5 P=6 C=32 S=3"] & n14["SUM"]
+    n2 --> n3["Conv5x5 P=2 C=16 S=1"] & n4["Conv5x5 P=2 C=16 S=1"] & n5["Conv5x5 P=2 C=16 S=1"] & n6["Conv5x5 P=2 C=16 S=1"]
+    n3 --> n7["Conv5x5 P=2 C=16 S=1"]
+    n4 --> n8["Conv5x5 P=2 C=16 S=1"]
+    n5 --> n9["Conv5x5 P=2 C=16 S=1"]
+    n6 --> n10["Conv5x5 P=2 C=16 S=1"]
+    n7 --> n11["CAT"]
+    n8 --> n11
+    n9 --> n12["CAT"]
+    n10 --> n12
+    n11 --> n13["SUM"]
+    n12 --> n13
+    n13 --> n14
+    n14 --> n15["MaxPool 2x2 P=0 S=2"]
+    n15 --> n16["Conv5x5 P=2 C=780 S=0"]
+    n16 --> n17["MaxPool 2x2 P=0 S=4"]
+    n17 --> n18["Fully Connected 780"]
+    n18 --> n19["Fully Connected 3"]
+    style A fill:#FFD600
+```
+
+
+
 
